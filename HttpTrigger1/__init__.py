@@ -7,6 +7,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     container = req.params.get('container')
     directory = req.params.get('directory')
+    customer = req.params.get('customer')
+
     if not container:
         try:
             req_body = req.get_json()
@@ -17,7 +19,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             directory = req_body.get('directory')
 
     if container and directory:
-        adls_to_bq(container=container, directory=directory)
+        adls_to_bq(container=container, directory=directory, customer_name=customer)
 
         return func.HttpResponse(
              "Added data to BigQuery tables",

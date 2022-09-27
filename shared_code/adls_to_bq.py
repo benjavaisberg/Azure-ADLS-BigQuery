@@ -1,9 +1,10 @@
 from google.cloud import bigquery
+import os
 from shared_code.set_adls import initialize_storage_account
 from shared_code.set_bigquery import initialize_bq
 from shared_code.parse_download import bytes_to_df
 
-def adls_to_bq(container, directory):
+def adls_to_bq(container, directory, customer_name):
 
     # Initialize ADLS client and point to correct directory where files reside
     service_client = initialize_storage_account()
@@ -12,9 +13,14 @@ def adls_to_bq(container, directory):
     paths = file_system_client.get_paths(path=directory)
 
     # Initialize Big Query client
-    bq_client = initialize_bq()
-    dataset_ref = bq_client.dataset('quickbooks_test_tbl')
-    bq_dataset_id = 'polynomial-land-356114.quickbooks_test_tbl'
+    bq_client = initialize_bq(customer_name)
+
+    customer_dataset_name = customer_name + '_DATASET_NAME'
+    dataset_name = os.environ[customer_dataset_name]
+    dataset_ref = bq_client.dataset(dataset_name)
+
+    customer_dataset_id = customer_name + '_DATASET_ID'
+    bq_dataset_id = os.environ[customer_dataset_id]
 
     # Iterate over all files in directory and load into a dataframe
     for file in paths:

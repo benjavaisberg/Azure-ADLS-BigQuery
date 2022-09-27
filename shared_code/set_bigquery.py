@@ -2,8 +2,9 @@ import os
 from google.cloud import bigquery
 from google.oauth2 import service_account
 
-def initialize_bq():
-    key_path = os.environ['KEY_PATH']
+def initialize_bq(customer_name):
+    config_file_name = customer_name + '_KEY_PATH'
+    key_path = os.environ[config_file_name]
     credentials = service_account.Credentials.from_service_account_file(
         key_path, scopes=["https://www.googleapis.com/auth/cloud-platform"],
     )
