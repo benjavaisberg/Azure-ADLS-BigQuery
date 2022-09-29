@@ -3,6 +3,7 @@ import os
 from shared_code.set_adls import initialize_storage_account
 from shared_code.set_bigquery import initialize_bq
 from shared_code.parse_download import bytes_to_df
+from google.cloud.exceptions import NotFound
 import logging
 
 def adls_to_bq(container, directory, customer_name):
@@ -34,10 +35,20 @@ def adls_to_bq(container, directory, customer_name):
         print('==============================================================================================================================================')
         print('DATAFRAME NAME: ', file_name)
 
-        # Create table if doesn't exist
+        
         table_name = file_name.split('.')[0].lower()
         table_id = f"{bq_dataset_id}.{table_name}"
-        bq_client.create_table(table_id, exists_ok=True)
+
+        # Check if table already exists. If not, go ahead and create it.
+        try:
+            table = bq_client.get_table(table_id)
+            print("Table {} already exists.".format(table_id))
+            logging.info("Table {} already exists.".format(table_id))
+        except NotFound:
+            print("Table {} is not found. Creating now...".format(table_id))
+            table = bq_client.create_table(table_id, exists_ok=True)
+            print("Created table {} ".format(table_id))
+            logging.info("Created table {} ".format(table_id))
 
         # Big Query Config to Truncate Load table
         table_ref = dataset_ref.table(table_name)
@@ -48,10 +59,6 @@ def adls_to_bq(container, directory, customer_name):
         job_config.allow_quoted_newlines = True
 
         job = bq_client.load_table_from_dataframe(df, table_ref, job_config=job_config)
-
-        # job.result()        
-
-        table = bq_client.get_table(table_id)
 
         print(
             "Loaded {} rows and {} columns to {}".format(

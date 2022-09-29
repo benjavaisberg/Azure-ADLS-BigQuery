@@ -6,6 +6,10 @@
         "isEnabled": true,
         "excludedTypes": "Request"
       }
+    },
+    "fileLoggingMode": "always",
+    "console": {
+      "isEnabled": true
     }
   },
   "extensionBundle": {
