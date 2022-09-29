@@ -1,8 +1,10 @@
+from turtle import down
 from google.cloud import bigquery
 import os
 from shared_code.set_adls import initialize_storage_account
 from shared_code.set_bigquery import initialize_bq
 from shared_code.parse_download import bytes_to_df
+import pandas as pd
 
 def adls_to_bq(container, directory, customer_name):
 
@@ -26,26 +28,30 @@ def adls_to_bq(container, directory, customer_name):
     for file in paths:
         file_name = file.name.split('/', 1)[-1]
         file_client = directory_client.get_file_client(file_name)
+
         download = file_client.download_file().readall()
         df = bytes_to_df(download)
 
-        print('file: ', file)
-        # print('df.head: ', df.head())
+        print('==============================================================================================================================================')
+        print('DATAFRAME NAME: ', file_name)
+        print('DATAFRAME SCHEMA:', df.dtypes)
+
         # Create table if doesn't exist
         table_name = file_name.split('.')[0].lower()
         table_id = f"{bq_dataset_id}.{table_name}"
         bq_client.create_table(table_id, exists_ok=True)
 
-        print('table name: ', table_name)
-        print('table_id: ', table_id)
         # Big Query Config to Truncate Load table
         table_ref = dataset_ref.table(table_name)
         job_config = bigquery.LoadJobConfig()
         job_config.source_format = bigquery.SourceFormat.CSV
         job_config.write_disposition = 'WRITE_TRUNCATE'
         job_config.autodetect = True
+        job_config.allow_quoted_newlines = True
 
         job = bq_client.load_table_from_dataframe(df, table_ref, job_config=job_config)
+
+        # job.result()        
 
         table = bq_client.get_table(table_id)
 
