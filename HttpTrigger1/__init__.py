@@ -10,6 +10,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     directory = req.params.get('directory')
     customer = req.params.get('customer')
 
+    # 09/29/2022 12:57PM
+
     if not container:
         try:
             req_body = req.get_json()

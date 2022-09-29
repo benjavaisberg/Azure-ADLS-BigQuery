@@ -1,10 +1,9 @@
-from turtle import down
 from google.cloud import bigquery
 import os
 from shared_code.set_adls import initialize_storage_account
 from shared_code.set_bigquery import initialize_bq
 from shared_code.parse_download import bytes_to_df
-import pandas as pd
+import logging
 
 def adls_to_bq(container, directory, customer_name):
 
@@ -34,7 +33,6 @@ def adls_to_bq(container, directory, customer_name):
 
         print('==============================================================================================================================================')
         print('DATAFRAME NAME: ', file_name)
-        print('DATAFRAME SCHEMA:', df.dtypes)
 
         # Create table if doesn't exist
         table_name = file_name.split('.')[0].lower()
@@ -61,4 +59,10 @@ def adls_to_bq(container, directory, customer_name):
             )
         )
 
+        logging.info(
+            "Loaded {} rows and {} columns to {}".format(
+                table.num_rows, len(table.schema), table_id
+            )
+        )
+    logging.info('DONE')
     print('DONE')
