@@ -56,7 +56,7 @@ def adls_to_bq(container, directory, customer_name):
         job_config.source_format = bigquery.SourceFormat.CSV
         job_config.write_disposition = 'WRITE_TRUNCATE'
         job_config.autodetect = True
-        job_config.allow_quoted_newlines = True
+        # job_config.allow_quoted_newlines = True
 
         job = bq_client.load_table_from_dataframe(df, table_ref, job_config=job_config)
 
