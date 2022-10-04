@@ -5,6 +5,7 @@ from shared_code.set_bigquery import initialize_bq
 from shared_code.parse_download import bytes_to_df
 from google.cloud.exceptions import NotFound
 import logging
+import schema.captiva_schema
 
 def adls_to_bq(container, directory, customer_name):
 
@@ -24,6 +25,16 @@ def adls_to_bq(container, directory, customer_name):
     customer_dataset_id = customer_name + '_DATASET_ID'
     bq_dataset_id = os.environ[customer_dataset_id]
 
+    # Define schemas
+    deliveries_by_date_schema = schema.captiva_schema.deliveries_by_date_schema
+    receipt_resin_preforms_schema = schema.captiva_schema.receipt_resin_preforms_schema
+    warehouse_transfers_schema = schema.captiva_schema.warehouse_transfers_schema
+
+    schema_dict = {'deliveries_by_date': deliveries_by_date_schema,
+                   'receipt_resin_preforms': receipt_resin_preforms_schema,
+                   'warehouse_transfers': warehouse_transfers_schema }
+
+
     # Iterate over all files in directory and load into a dataframe
     for file in paths:
         file_name = file.name.split('/', 1)[-1]
@@ -31,10 +42,15 @@ def adls_to_bq(container, directory, customer_name):
 
         download = file_client.download_file().readall()
         df = bytes_to_df(download)
+        if 'receipt' in file_name:
+            logging.info(df.loc[df['Internal_Doc'] == 8289, 'Remarks'])
 
-        print('==============================================================================================================================================')
-        print('DATAFRAME NAME: ', file_name)
+        df = df.replace(r'\n',' ', regex=True)
+        df = df.replace(r'\r',' ', regex=True)
+        if 'receipt' in file_name:
+            logging.info(df.loc[df['Internal_Doc'] == 8289, 'Remarks'])
 
+        logging.info('==============================================================================================================================================')
         
         table_name = file_name.split('.')[0].lower()
         table_id = f"{bq_dataset_id}.{table_name}"
@@ -42,12 +58,11 @@ def adls_to_bq(container, directory, customer_name):
         # Check if table already exists. If not, go ahead and create it.
         try:
             table = bq_client.get_table(table_id)
-            print("Table {} already exists.".format(table_id))
             logging.info("Table {} already exists.".format(table_id))
         except NotFound:
-            print("Table {} is not found. Creating now...".format(table_id))
-            table = bq_client.create_table(table_id, exists_ok=True)
-            print("Created table {} ".format(table_id))
+            logging.info("Table {} is not found. Creating now...".format(table_id))
+            table = bigquery.Table(table_id, schema=schema_dict[table_name])
+            table = bq_client.create_table(table, exists_ok=True)
             logging.info("Created table {} ".format(table_id))
 
         # Big Query Config to Truncate Load table
@@ -55,21 +70,16 @@ def adls_to_bq(container, directory, customer_name):
         job_config = bigquery.LoadJobConfig()
         job_config.source_format = bigquery.SourceFormat.CSV
         job_config.write_disposition = 'WRITE_TRUNCATE'
-        job_config.autodetect = True
-        # job_config.allow_quoted_newlines = True
+        job_config.schema = schema_dict[table_name]
+        job_config.allow_quoted_newlines = True
 
         job = bq_client.load_table_from_dataframe(df, table_ref, job_config=job_config)
-
-        print(
-            "Loaded {} rows and {} columns to {}".format(
-                table.num_rows, len(table.schema), table_id
-            )
-        )
+        job.result()
 
         logging.info(
-            "Loaded {} rows and {} columns to {}".format(
-                table.num_rows, len(table.schema), table_id
+            "Loaded {} rows to {}".format(
+                job.output_rows, job.destination
             )
         )
+
     logging.info('DONE')
-    print('DONE')
