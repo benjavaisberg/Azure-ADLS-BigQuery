@@ -42,13 +42,8 @@ def adls_to_bq(container, directory, customer_name):
 
         download = file_client.download_file().readall()
         df = bytes_to_df(download)
-        if 'receipt' in file_name:
-            logging.info(df.loc[df['Internal_Doc'] == 8289, 'Remarks'])
-
         df = df.replace(r'\n',' ', regex=True)
         df = df.replace(r'\r',' ', regex=True)
-        if 'receipt' in file_name:
-            logging.info(df.loc[df['Internal_Doc'] == 8289, 'Remarks'])
 
         logging.info('==============================================================================================================================================')
         
