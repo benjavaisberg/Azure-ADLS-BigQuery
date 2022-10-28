@@ -42,6 +42,7 @@ def adls_to_bq(container, directory, customer_name):
 
         download = file_client.download_file().readall()
         df = bytes_to_df(download)
+
         df = df.replace(r'\n',' ', regex=True)
         df = df.replace(r'\r',' ', regex=True)
 

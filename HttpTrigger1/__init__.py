@@ -1,7 +1,6 @@
 import logging
 import azure.functions as func
 from shared_code.adls_to_bq import adls_to_bq
-from azure.storage.filedatalake import DataLakeFileClient
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
@@ -9,6 +8,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     container = req.params.get('container')
     directory = req.params.get('directory')
     customer = req.params.get('customer')
+    
 
     # 10/04/2022 10:41 AM
 
