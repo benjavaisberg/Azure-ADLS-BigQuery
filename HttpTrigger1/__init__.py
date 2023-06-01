@@ -10,7 +10,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     customer = req.params.get('customer')
     
 
-    # 10/04/2022 10:41 AM
+    # 05/31/2023
 
     if not container:
         try:

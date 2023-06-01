@@ -50,3 +50,24 @@ warehouse_transfers_schema = [
     bigquery.SchemaField("Batch_Number", "STRING"),
     bigquery.SchemaField("Created_by", "STRING")
 ]
+
+sales_order_forecast_schema = [
+    bigquery.SchemaField("ShippingDate", "STRING"),
+    bigquery.SchemaField("ShippingType", "STRING"),
+    bigquery.SchemaField("Customer", "STRING"),
+    bigquery.SchemaField("CustomerName", "STRING"),
+    bigquery.SchemaField("SONo", "STRING"),
+    bigquery.SchemaField("SODate", "STRING"),
+    bigquery.SchemaField("SOStatus", "STRING"),
+    bigquery.SchemaField("CustRefNo", "STRING"),
+    bigquery.SchemaField("InternalStatus", "STRING"),
+    bigquery.SchemaField("Carrier", "STRING"),
+    bigquery.SchemaField("Pallets", "FLOAT"),
+    bigquery.SchemaField("Cases", "FLOAT"),
+    bigquery.SchemaField("Boxes", "FLOAT"),
+    bigquery.SchemaField("Bags", "FLOAT"),
+    bigquery.SchemaField("Bottles", "FLOAT"),
+    bigquery.SchemaField("CAPS", "FLOAT"),
+    bigquery.SchemaField("CoCStatus", "STRING"),
+    bigquery.SchemaField("SalesEmployee", "STRING")
+]

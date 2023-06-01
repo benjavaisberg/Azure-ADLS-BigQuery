@@ -29,10 +29,12 @@ def adls_to_bq(container, directory, customer_name):
     deliveries_by_date_schema = schema.captiva_schema.deliveries_by_date_schema
     receipt_resin_preforms_schema = schema.captiva_schema.receipt_resin_preforms_schema
     warehouse_transfers_schema = schema.captiva_schema.warehouse_transfers_schema
+    sales_orders_forecast_schema = schema.captiva_schema.sales_order_forecast_schema
 
     schema_dict = {'deliveries_by_date': deliveries_by_date_schema,
                    'receipt_resin_preforms': receipt_resin_preforms_schema,
-                   'warehouse_transfers': warehouse_transfers_schema }
+                   'warehouse_transfers': warehouse_transfers_schema,
+                   'sales_orders_forecast': sales_orders_forecast_schema}
 
 
     # Iterate over all files in directory and load into a dataframe
