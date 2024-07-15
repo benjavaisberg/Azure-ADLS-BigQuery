@@ -6,6 +6,7 @@ from shared_code.parse_download import bytes_to_df
 from google.cloud.exceptions import NotFound
 import logging
 import schema.captiva_schema
+from shared_code.utils import import_object
 
 def adls_to_bq(container, directory, customer_name):
 
@@ -81,3 +82,57 @@ def adls_to_bq(container, directory, customer_name):
         )
 
     logging.info('DONE')
+
+
+def write_to_bq(container, directory, bq_project=None, bq_dataset=None, bq_table=None):
+
+    # Initialize ADLS client and point to correct directory where files reside
+    service_client = initialize_storage_account()
+    file_system_client = service_client.get_file_system_client(file_system=container)
+    directory_client = file_system_client.get_directory_client(directory=directory)
+    paths = file_system_client.get_paths(path=directory)
+
+     # Initialize Big Query client
+    bq_client = initialize_bq('CAPTIVA')
+    dataset_ref = bq_client.dataset(bq_dataset)
+    bq_dataset_id = bq_project + '.' + bq_dataset
+
+    for path in paths:
+        logging.info(path.name)
+        if path.is_directory != True:
+            file_name = path.name.split('/')[-1]
+            logging.info(file_name)
+            file_client = directory_client.get_file_client(file_name)
+            download = file_client.download_file().readall()
+            df = bytes_to_df(download)
+
+        # # Big Query Config to Append to table
+        table_ref = dataset_ref.table(bq_table)
+
+        # Assign correct schema
+        bq_schema = import_object('schema.captiva_schema', bq_table)
+
+        # Create table if doesn't exist
+        try:
+            bq_client.get_table(table_ref)
+            logging.info("Table {} already exists.".format(table_ref))
+        except NotFound:
+            logging.info("Table {} is not found. Creating table now...".format(table_ref))
+            table = bigquery.Table(table_ref, schema=bq_schema)
+            bq_client.create_table(table, exists_ok=True)
+            logging.info("Created table {} .".format(table_ref))
+
+        job_config = bigquery.LoadJobConfig()
+        job_config.source_format = bigquery.SourceFormat.CSV
+        job_config.write_disposition = 'WRITE_APPEND'
+        job_config.schema = bq_schema
+        job_config.allow_quoted_newlines = True
+
+        job = bq_client.load_table_from_dataframe(df, table_ref, job_config=job_config)
+        job.result()
+
+        logging.info(
+        "Loaded {} rows to {}".format(
+            job.output_rows, job.destination
+            )
+        )

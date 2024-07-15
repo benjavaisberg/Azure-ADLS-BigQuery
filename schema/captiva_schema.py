@@ -71,3 +71,10 @@ sales_order_forecast_schema = [
     bigquery.SchemaField("CoCStatus", "STRING"),
     bigquery.SchemaField("SalesEmployee", "STRING")
 ]
+
+inventory = [
+    bigquery.SchemaField("BinCode", "STRING"),
+    bigquery.SchemaField("ItemCode", "STRING"),
+    bigquery.SchemaField("PalletQty", "INT64"),
+    bigquery.SchemaField("Timestamp", "TIMESTAMP"),
+]
