@@ -75,6 +75,6 @@ sales_order_forecast_schema = [
 inventory = [
     bigquery.SchemaField("BinCode", "STRING"),
     bigquery.SchemaField("ItemCode", "STRING"),
-    bigquery.SchemaField("PalletQty", "INT64"),
+    bigquery.SchemaField("PalletQty", "FLOAT"),
     bigquery.SchemaField("Timestamp", "TIMESTAMP"),
 ]
